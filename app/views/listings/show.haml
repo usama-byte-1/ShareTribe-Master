@@ -1,0 +1,173 @@
+.container-fluid.padding-0
+  .three-columns
+    .single-product.row
+      .slider-block.col-md-5.col-sm-5.col-xs-5
+        .slideshow
+          .slider-holder
+            .slideset
+              -@listing.listing_images.each_with_index do |ls_img , i|
+                .slide
+                  %img.img-responsive{:alt => "item image", :src => asset_path(ls_img.image.url(:original)) }
+          .static-block
+            %a.btn-prev{:href => "#"}
+              %i.fa.fa-5x.fa-angle-left
+            %a.btn-next{:href => "#"}
+              %i.fa.fa-5x.fa-angle-right
+            .pagination
+              %ul
+                -@listing.listing_images.each_with_index do |ls_img , i|
+                  %li
+                    %a{:href => "#"}
+                      %img{:alt => "item image", :src => asset_path(ls_img.image.url(:thumb)) }
+      .qty-block.col-md-7.col-sm-7.col-xs-7
+        .single_head      
+          %h1
+            %span#listing-title.listing-title= @listing.title
+        .row
+          .col-md-7.col-sm-7.col-xs-7
+            .row
+              %ul.product-info
+                %li
+                  .col-md-3.col-sm-3.col-xs-3.p-0.text-right
+                    %span Item Condition:
+                    
+                  .col-md-9.col-sm-9.col-xs-9
+                    %span #{@listing.item_condition}
+                %li
+                  .col-md-3.col-sm-3.col-xs-3.p-0.text-right
+                    %span Qty:
+                  .col-md-3.col-sm-3.col-xs-3
+                    .qty
+                      %input.form-control{:id => "qty" ,:type => "number", :min => "#{@listing.min_order}" , :max => "#{@listing.available}" , :value => "#{@listing.min_order}" }
+                      %lable.min-order
+                        Min Order: #{@listing.min_order}
+                  .col-md-6.col-sm-6.col-xs-6 
+                    .available     
+                      #{@listing.available} available /  0 sold  
+                %li
+                  .price-area
+                    .col-md-1.col-sm-1.col-xs-1.padding-right-0
+                      %i.fa.fa-money{"aria-hidden" => "true"}
+                    .col-md-3.col-sm-3.col-xs-3.padding-0
+                      %span Price
+                    .col-md-4.col-sm-4.col-xs-4.padding-0
+                      .listing-price
+                        %span.listing-price-amount
+                          %span#price_span
+                            = humanized_money_with_symbol(@listing.price).upcase
+                    .col-md-4.col-sm-4.col-xs-4                      
+                    .col-md-12.col-sm-12.col-xs-12.row.delivery-method
+                      #listing-message-links
+                        = render :partial => "listing_actions", locals: { form_path: form_path, payment_gateway: payment_gateway, delivery_opts: delivery_opts, process: process, listing_unit_type: listing_unit_type, country_code: country_code }
+
+                    .col-md-12.col-sm-12.col-xs-12.cards-image-holder
+                      %img{:alt => "Cards", :src => asset_path("braintree_cards.png") }
+
+                %li
+                  .col-md-3.col-sm-3.col-xs-3.p-0.text-right
+                    %span Pickup Address:
+                  .col-md-9.col-sm-9.col-xs-9
+                    %p
+                      = @listing.origin
+                %li
+                  .col-md-3.col-sm-3.col-xs-3.p-0.text-right
+                    %span Shipping info:
+                  .col-md-9.col-sm-9.col-xs-9
+                    %p
+                      May not ship to USA - Read item description or contact seller for shipping options. 
+                %li
+                  .col-md-3.col-sm-3.col-xs-3.p-0.text-right
+                    %span Delivery:
+                  .col-md-9.col-sm-9.col-xs-9
+                    %p
+                      Varies
+          .col-md-5.col-sm-5.col-xs-5
+            .row-with-divider
+              .col-12
+                .author-box
+                  .listing-author
+                    .listing-author-avatar
+                      = medium_avatar_thumb(@listing.author, {:class => "listing-author-avatar-image"})
+                    .listing-author-details
+                      .listing-author-name
+                        = link_to @listing.author.name(@current_community), @listing.author, :id => "listing-author-link", :class => "listing-author-name-link", :title => "#{@listing.author.name(@current_community)}"
+                        %ul.author_details-list
+                          %li
+                            %span Total listings 
+                            = count_active_listings_for(@listing.author)
+                          %li
+                            %span Ships items quickly
+                          %li
+                            %span Has earned a track record of excellent service
+
+              %img.img-responsive{:src => asset_path('index/single_prodect.jpg')}
+.container
+  .row
+    .description-block.col-md-12.col-sm-12.col-xs-12
+      .row
+        .col-md-12
+          %div
+            / Nav tabs
+            %ul.nav.nav-tabs{:role => "tablist"}
+              %li.active{:role => "presentation"}
+                %a{"aria-controls" => "home", "data-toggle" => "tab", :href => "#home", :role => "tab"} Description
+              %li{:role => "presentation"}
+                %a{"aria-controls" => "profile", "data-toggle" => "tab", :href => "#profile", :role => "tab"} Most Recent Reviews
+            / Tab panes
+            .tab-content
+              #home.tab-pane.active{:role => "tabpanel"}
+                .reviews-blocks
+                  .reviews-holder
+                    - if @listing.description && !@listing.description.blank?
+                      - text_with_line_breaks do
+                        = @listing.description
+                      - if(youtube_link_ids.present?)
+                        - youtube_link_ids.each do |youtube_id|
+                          .listing-description-youtube-wrapper
+                            %iframe.listing-description-youtube-iframe{ title: t("listings.show.youtube_video_player"), width: 640, height:390, src: "//www.youtube.com/embed/#{ youtube_id }", frameborder: 0, allowfullscreen: true}
+              #profile.tab-pane{:role => "tabpanel"}
+                - unless (@listing.closed? && !current_user?(@listing.author)) || !@current_community.listing_comments_in_use
+                  .view-item
+                    #comments.discussion.overflow-allowed.comment-form-vendor
+                      %h2
+                        = icon_tag("chat_bubble", ["icon-with_text"])
+                        .text-with-icon
+                          = t(".comments")
+                          %span#comment_count= "(#{@listing.comments_count})"
+                      #follow-links.follow-links
+                        = render :partial => "follow_links"
+                      #comment-list
+                        = render :partial => "comment", :collection => @listing.comments
+                      #comment-form
+                        = render :partial => "comment_form"
+
+
+
+:javascript
+  $("#qty").on('keyup paste', function () {
+    ApplyFilter();
+  });
+
+  function ApplyFilter() {
+    var value = $("#qty").val();
+    if( value < #{@listing.min_order} ){
+      $("#qty").val(#{@listing.min_order});
+    }
+    if( value > #{@listing.available} ){
+      $("#qty").val(#{@listing.available});
+    }
+  }
+  
+  $(document).ready(function(){
+    cal_price()
+  })
+
+  $("#qty").change(function(){
+   cal_price()
+  })
+
+  function cal_price(){
+    var q = parseFloat($("#qty").val())
+    var p = parseFloat(#{humanized_money(@listing.price)})
+    $("#price_span").text("$" + q * p );
+  }
